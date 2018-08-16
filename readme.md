@@ -7,19 +7,22 @@ This is a fork of [SolidPy][SP] which has been dormant since 2012.
 [OSC]:http://www.openscad.org
 [OSCUM]:http://en.wikibooks.org/wiki/OpenSCAD_User_Manual
 
-SolidPy2 is a python module that allows generates [OpenSCAD][OSC] code from python code. The aim of developing this SolidPy2 is to simplify and enhance the design experience of code-based, parametric, solid modeling. 
+SolidPy2 is a Python module that allows generation of [OpenSCAD][OSC] code from Python code. Use of 
+SolidPy2 is to meant to simplify and enhance the design experience of code-based, parametric, solid 
+modeling. 
 
 Python + SolidPy2 -> OpenSCAD code -> Solid Model
 
-##So, How do I use it?
-Place SolidPy2.py somewhere it your PYTHONPATH or in the directory of the python module that imports it. Write the python code to build your solid model. While your write your code and run it, changes to the output can be observed using OpenSCAD with the 'Automatic Reload and Compile' setting checked.
-
-All the other files seen in the repository are working files that may be of help as examples. They may or may not work as SolidPy2 is undergoing changes.
+## Usage
+Place SolidPy2.py within the PYTHONPATH or in the directory containing the Python module which imports it. 
+Write Python code using SolidPy2 to define the solid model. Execute the SolidPy2 based model to 
+generate an OpenSCAD version of the model. The OpenSCAD version of the model can be viewed and 
+automatically updated by setting the 'Design -> Automatic Reload and Preview' option 
+from the OpenSCAD IDE.
 
 ## Language Differences
- *If some of this looks garbled see readme.html* 
  
- | SolidPy2 |Open SCAD|Difference |
+ | SolidPy2 |OpenSCAD|Difference |
  |:------- | :-------- | :--------- |
  | a = Sphere(r=2)| sphere(r=2) | First letter Capitalized |
  | b = Cube(1,2,3) | cube([1,2,3]) | Square brackets are optional |
@@ -41,12 +44,17 @@ All the other files seen in the repository are working files that may be of help
 
 
 ## SolidPy2 Classes
-The SolidPy2 class was designed for maximum inheritance and flexibility. Each are named after the OpenSCAD they represent except the names are capitalized.
+The SolidPy2 classes were designed for maximum inheritance and flexibility. Each are named after the 
+OpenSCAD solid they represent except the names are capitalized.
 
- Below shows the interface for each class. Treat the arguments for each just as they are for OpenSCAD. Of course there will be differences in syntax. Also some commands will allow a single object or a list of objects to be used as an argument. For specific OpenSCAD information see the [OpenSCAD Users Manual][OSCUM].
+Shown below is the interface for each SolidPy2 class. Treat the arguments for each just as they are 
+for OpenSCAD, although there will be differences in syntax. Some commands will allow a single object
+or a list of objects to be used as an argument. For specific OpenSCAD information see the 
+[OpenSCAD Users Manual][OSCUM].
 
 
-## Shapes
+## 3D Shapes
+
 ### Cube(self, x, y = None, z = None, center = None) or Cube(self, [x,y,z] center = None)
 Returns a SolidPy2Obj which represents a cube. 
 
@@ -56,223 +64,241 @@ Examples: `myBox = Cube([3,4,5])` or `myBox = Cube(3,4,5)`
 ### Cylinder(h, r, r2 = None, fa = None, fs = None, fn = None, center = None)
 Returns a SolidPy2Obj which represents a cylinder. 
        	 	
- example:    `myTube = Cylinder(h = 5, r=10, center = True )`
+Example: `myTube = Cylinder(h = 5, r=10, center = True )`
  
  
 ### Sphere(r, fa = None, fs = None, fn = None)
 Returns a SolidPy2Obj which represents a cylinder. 
 
-Notice that OpenSCAD uses **$**fs and **$**fn while SolidPy2 drops the **$**.
+Notice that OpenSCAD uses \\$fs and \\$fn while SolidPy2 drops the \\$.
 
- example: `myBall = Sphere(r=5)`
+Example: `myBall = Sphere(r=5, fn=64)`
 
-
-
-### DXF_linear_extrude(filename, height, convexity = None, center = None)
-Creates a 3D object by extruding a DXF file. Returns a SolidPy2Obj object.
- 
-   myShape = DXF_linear_extrude(mydxfFile, h=5)
-
-   
 ### Linear_extrude(height,center,convexity,twist)
-Extrudes shapes to make 3D object. Returns a SolidPy2Obj object.
+Extrudes 2D shapes to make 3D object. Returns a SolidPy2Obj object.
 
-### Import(fileName)
-Imports a file for use in the current OpenSCAD model. Returns a SolidPy2Obj object.
+### Rotate_extrude(convexity = None, fn = None)
+Returns a SolidPy2Obj object.
+
+### ImportSTL(fileName)
+Imports an STL surface geometry file for use in the current OpenSCAD model. Returns a SolidPy2Obj object.
 
 ### Module(moduleName,**kwargs) 
-Calls a OpenSCAD Module brought in by the **Use(filename)** command. Arguments to the module must be given in keyworded values. Returns a SolidPy2Obj object.
+Calls a OpenSCAD module brought in by the **use(filename)** command. Arguments to the module must be given as keyworded values. Returns a SolidPy2Obj object.
 
-    Use("Rachet Tooth.scad")
+Example:
+```
+use("Rachet Tooth.scad")
+tooth = Module("rachetTooth", ht = 1, thk=8, ra = 16, ba = 80)
+```
+ 
+### Polyhedron(points,triangles) 
+Returns a SolidPy2Obj object.
 
-    tooth = Module("rachetTooth", ht = 1, thk=8, ra = 16, ba = 80)
-    
+
+## 2D Shapes
+
+### Circle(r)
+
+### Square([x,y]) or Square(x, y)
+
 ### Polygon(pointsList, pathList, convexity)
 Returns a SolidPy2Obj object.
 
-###   Polyhedron(points,triangles) 
-
-  Returns a SolidPy2Obj object.
-
 ### Projection(cut = true) 
-  Returns a SolidPy2Obj object.
+Returns a SolidPy2Obj object.
 
-### Rotate_extrude(convexity = None, fn = None)
- Returns a SolidPy2Obj object.
-
-### Square([x,y]) or Square(x, y)
 
 ## CGS Operations
 CGS object hold other SolidPy2 objects as child objects. They perform the CGS operation on the child objects as described below.
  
-### '+' Operator
-### Union()
-### Union([solidPyobjs])
-### Union(solidObj1 = None, solidObj2 = None)
+### _Union_
+1. Union()
+   - creates an empty Union object that can be used to add SolidPy2 objects at a later time
+1. Union([objectList])
+   - creates a Union object containing the objects in [objectList]
+1. Union ([objectList1], [objectList2]) 
+   - creates a Union object containing the objects in both lists
 
-
-Union() returns an empty Union()  object that can be used to add SolidPy2 objects at a later time
-Union ([objectList]) will create a union that contains the objects in [objectList]
-Union ([objectList1], [objectList2]) will create a union that contains the objects in both lists.
+The Union object represents a CSG shape made by adding all of the child objects together.
 
 An alternate form of Union is the  **'+'** operator.
 
-    a = Cube(5,5,5)
-    b = sphere(r = 6)
-    myUnion = a + b
+Example: `myUnion = a + b`
     
-- If 'a' Union() then 'b' is added to the 'a' Union()
-- If 'b' Union() then 'a' is added to the 'b' Union()
-- If neither ''a or 'b' is a Union then both are added to a new union.
+- If 'a' is a Union then 'b' is added to the 'a' Union.
+- If 'b' is a Union then 'a' is added to the 'b' Union.
+- If neither 'a' or 'b' is a Union then both are added to a new Union.
 
-### '-' Operator
-###Difference(solidObj1 = None, solidObj2 = None)
-### Difference()
-### Difference([solidPyobjs])
+### _Difference_
+1. Difference()
+   - creates an empty Difference object that can be used to add SolidPy2 objects at a later time
+1. Difference([objectList])
+   - creates a Difference object based on the objects in [objectList]
+1. Difference([objectList1], [objectList2])
+   - creates a Difference object based on the objects in both lists
 
-Difference() returns an empty Difference() that can be used to add SolidPy2 objects at a later time.
-Difference ([objectList]) will create a Difference() that contains the objects in [objectList]
-Difference ([objectList1], [objectList2]) will create a Difference() that contains the objects in both lists.
-The first object added to the Difference() object is the one that all other will be subtracted from.
+The Difference object represents a CSG shape made by taking the first child object and subtracting the remaining child objects. 
 
-An alternate form of Union is the  **'-'** operator.
+An alternate form of Difference is the  **'-'** operator.
 
-    a = Cube(5,5,5)
-    b = sphere(r = 6)
-    myDiff = a - b
+Example: `myDiff = a - b`
     
-- If 'a' is a Difference() then 'b' is subtracted from  the 'a' Difference()
-- If 'a' is not a Difference() object a new is made placing 'a' as its first child from which 'b' will be subtracted.
+- If 'a' is a Difference then 'b' is subtracted from  the 'a' Difference.
+- If 'a' is not a Difference, a new Difference object is created with 'a' as its first child from which 'b' will be subtracted.
 
 
-### '*' Operator
-###Intersection(solidObj1 = None, solidObj2 = None)
-### Intersection()
-### Intersection([solidPyobjs])
+### _Intersection_
+1. Intersection()
+   - creates an empty Intersection object that can be used to add SolidPy2 objects at a later time
+1. Intersection(solidObj1 = None, solidObj2 = None)
+   - creates an Intersection object representing the intersection between solidObj1 and solidObj2
+1. Intersection([objectList])
+   - creates an Intersection object representing the intersection between all objects in objectList
+1. Intersection([objectList1],[objectList2])
+   - creates an Intersection object representing the intersection between all objects in objectList1
+     and objectList2
 
-Intersection() returns an empty Intersection() that can be used to add SolidPy2 objects at a later time.
-Intersection ([objectList]) will create an Intersection() that contains the objects in [objectList]
-Intersection ([objectList1], [objectList2]) will create an Intersection that contains the objects in both lists.
-The all objects added to the Intersection() object will define the intersection.
+An alternate form of Intersection is the  **'*'** operator.
 
-An alternate form of Union is the  **'*'** operator.
-
-    a = Cube(5,5,5)
-    b = sphere(r = 6)
-    myIntersect = a * b
+Example: `myIntersect = a * b`
     
-- If 'a' is an Intersection() then 'b' is intersected with the 'a' Intersection()
-- If 'b' is an Intersection() then 'a' is intersected with the 'b' Intersection()
-- If 'a' or 'b' are not  Intersection() objects, a new one is made.
+- If 'a' and 'b' are not  Intersection() objects, a new one is made.
 
 
-### Minkowski( solidObj1 = None, solidObj2 = None)
-Returns the Minkowski parent of solidObj1 and solidObj2.
+### _Minkowski_
+1.  Minkowski(solidObj1 = None,solidObj2 = None)
+   - creates a Minkowski object representing the Minkowski sum of solidObj2 revolved around the
+     perimeter of solidObj1
 
-### Hull(solidObj1 = None, solidObj2 = None)
-Returns the Minkowski parent of solidObj1 and solidObj2.
+### _Hull_
+1. Hull()
+   - creates an empty Hull object that can be used to add SolidPy2 objects at a later time
+1. Hull(solidObj1 = None, solidObj2 = None)
+   - creates an Hull object representing the convext hull between solidObj1 and solidObj2
+1. Hull([objectList])
+   - creates an Hull object representing the convext hull between all objects in objectList
+1. Hull([objectList1],[objectList2])
+   - creates an Hull object representing the convext hull between all objects in objectList1
+     and objectList2
 
-##Transforms
-Transforms are methods of SolidPy2 objects. Transforms are kept in the objects transform stack.
-### translate(x,y,z)
-###translate([x,y,z])
- | SolidPy2 |Open SCAD
+## Transforms
+Transforms are methods of SolidPy2 objects. Transforms are kept on the object's transform stack.
+
+### translate(x,y,z) OR translate([x,y,z])
+ | SolidPy2 |OpenSCAD
  |:------- | :-------- |
  | a = Sphere(r=2)|sphere(r=2)
  | a.translate(2,4,6)| translate([2,4,6]){sphere(r=2)} 
  
  
-### mirror(x,y,z)
-### mirror([x,y,z])
- | SolidPy2 |Open SCAD
+### mirror(x,y,z) OR mirror([x,y,z])
+ | SolidPy2 |OpenSCAD
  |:------- | :-------- |
  | a = Sphere(r=2)|sphere(r=2)
  | a.translate(2,4,6)| translate([2,4,6]){sphere(r=2)} 
 
 ### multmatrix(m)
-m is a 4x4 matrix.
+m is a 4x4 transformation matrix.
 
- | SolidPy2 |Open SCAD
+ | SolidPy2 |OpenSCAD
  |:------- | :-------- |
  | a = Sphere(r=2)|sphere(r=2)
  | a.multmatrix(m)| multmatrix(m){sphere(r=2)} 
 
 
-### scale(x,y,z)
-### scale([x,y,z])
- | SolidPy2 |Open SCAD
+### scale(x,y,z) OR scale([x,y,z])
+ | SolidPy2 |OpenSCAD
  |:------- | :-------- |
  | a = Sphere(r=2)|sphere(r=2)
  | a.scale(2,4,6)| scale([2,4,6]){sphere(r=2)} 
  
-###color("color",alpha)
-### color([r,g,b],alpha)
- | SolidPy2 |Open SCAD
+### color("color",alpha) OR color([r,g,b],alpha)
+ | SolidPy2 |OpenSCAD
  |:------- | :-------- |
  | a = Sphere(r=2)|sphere(r=2)
  | a.color("red", 0.5)| color("red", 0.5){sphere(r=2)} 
 
-##Utility
-### Comment
-Each object can have a comment applied to  which will help identify it  in the OpenSCAD code. 
+## Utility
 
-    a=Cube(1,2,3)
-    a.comment = "Here is my Cube!"
+### comment
+Each object may have a comment applied which will be passed through into the OpenSCAD code. 
 
-###copy(SolidPy2Obj)
-Copy creates an exact duplicate of the solid object except the parent of the duplicate is set to `None` and children are duplicates of the original.
+Example:
+```
+a=Cube(1,2,3)
+a.comment = "Here is my Cube!"
+```
 
-     myBox = Cube(4,5,6)
-	 myNewBox = myBox.copy()
+### copy(SolidPy2Obj)
+Copy creates a duplicate of the solid object except that the parent of the duplicate is set to 
+`None` and children are duplicates of the original.
 
-###use("filename.scad")
+Example:
+```
+myBox = Cube(4,5,6)
+myNewBox = myBox.copy()
+```
+
+### use('filename.scad')
 This loads an OpenSCAD file in order to access modules within that file. 
-Note that **include()** is not implemented.
 
-###writeSCADfile(fileName, *args):
-fileName = the SCAD file to save to. Include the '.scad' extension
-*args can be SolidPy2 objects or lists of SolidPy2 objects.
+### write_scad_file(fileName, \*args):
+Will save the output in SCAD format to 'fileName' + '.scad'.  
+\*args can be SolidPy2 objects or lists of SolidPy2 objects.
 
-###Extras
-###inches(x)
-Everything in OpenSCAD is assumed to be millimeters(mm). inches(X) returns 25.4 * X to 
-convert x that is in inches to mm.
-## Modifiers
+## Extras
+### inches_to_mm(x)
+Dimensions in OpenSCAD are generally assumed to be millimeters(mm). Converts from inches to mm.
+
+## Object Modifiers
 Each object has modifiers that are found in OpenSCAD. They are boolean attributes.
 
-* **root** 
-* **disable**
-* **background**
-* **debug** 
+* **root** - ignore the rest of the design and use this as the root, invoked via '!' in OpenSCAD
+* **disable** - ignore this object, invoked via '\*' in OpenSCAD
+* **background** - ignore this object and draw transparently, invoked via '%' in OpenSCAD
+* **debug** - highlight in transparent pink, invoked via '#' in OpenSCAD 
 
-Activate these as needed by:
+Example:
+```
+a = Cube(1,2,3)
+a.disable = True
+```
+## Defaults
+Object specifying defaults used for the SCAD code generation.
 
+### Attributes
 
-      a = Cube(1,2,3)
-      a.disable = True
-    
-##Defaults
-Defaults are to be set by the user for their own taste.
-###tab
-By default 'Defaults.tab = " " * 4' This set the tab length in the OpenSCAD code written by writeSCADfile().
+### _tab_
+This sets the tab length in the OpenSCAD code written by write_scad_file().
+By default, **Defaults.tab** = 4 (meaning 4 spaces).
 
-###includeFiles
+### _useFiles_
+This is a list of SCAD files that are imported into the generated SCAD file via 
+OpenSCAD's _'use(filename)'_. 
+This is updated by the use of SolidPy2's _'use(scad-file)'_, although it can also be modified directly.
 
-Defaults.includeFiles is modified by the **Use(filename)** command to hold files to be included. It can also be modified directly.
-###fs
-Defaults.fs sets the Special Variable in OpenSCAD **$fs** at the beginning of the OpenSCAD file.
-###fn
-Defaults.fn sets the Special Variable in OpenSCAD **$fn** at the beginning of the OpenSCAD file.
-###fa
-Defaults.fa sets the Special Variable in OpenSCAD **$fa** at the beginning of the OpenSCAD file.
-### autoColor
-When `Default.autoColor == True` colors are automatically applied to all objects at their creation given by the order set in the Default.color[] list
+### _numFragments_ (aka '$fn' in OpenSCAD)
+Number (minimum of 3) of fragments approximating curves/curved surfaces.
+Sets the OpenSCAD **$fn** variable at the beginning of the generated code.
 
-###colors
-Defaults.colors are used by the autoColor setting to automatically apply a color to a SolidPy2 object when it is created. 
+### _minFragmentSize_ (aka '$fs' in OpenSCAD)
+Minimum size (minimum of 0.01) for fragments approximating curves/curved surfaces.
+Sets the OpenSCAD **$fs** variable at the beginning of the generated code.
 
-    Defaults.colors = ["blue", "green", "orange", "yellow", "SpringGreen"]
+### _minFragmentAngle_ (aka '$fa' in OpenSCAD)
+Minimum angle (minimum of 0.01) constraining the number of fragments approximating curves/curved surfaces.
+The number of fragments is the highest integer <= 360/**minAngle**.
+Sets the OpenSCAD **$fa** variable at the beginning of the generated code.
+
+### _autoColor_
+Boolean controlling whether colors are automatically applied to SolidPy2 objects at creation.
+The color order is set by the **Defaults.colors** list.
+
+### _colors_
+Ordered list of colors used by the **Defaults.autoColor** setting to automatically apply colors to a SolidPy2 objects.
+
+Defaults.colors = ["blue", "green", "orange", "yellow", "SpringGreen", "purple", "DarkOrchid", "MistyRose"]
 
 Colors can be added or changed as required. Colors can be found at [OpenSCAD Users Manual][OSCUM].
-
 

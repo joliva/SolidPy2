@@ -1,6 +1,6 @@
 import copy
 
-def inches(x):
+def inches_to_mm(x):
     """converts inches to mm"""
     return 25.4 * x
 
@@ -13,27 +13,21 @@ def boolStr(abool):
 
 class Defaults(object):
     tab = " " * 3
-    includeFiles = []
+    useFiles = []
     preFiles = []
     postFiles = []
-    fs = None
-    fn = None
-    fa = None
+    minFragmentSize = None
+    numFragments = None
+    minFragmentAngle = None
     autoColor = False
     augment = False
     diffColor = ["red", 0.25] #for augmentation of difference(){}
-    colors = ["blue", "green", "orange", "yellow", "SpringGreen",
-            "purple", "DarkOrchid", "MistyRose"]
-##resistor color codes good for troubleshooting...?
-##    colors=["black","brown","red","orange","yellow","green",
-##            "blue","purple","grey","white"]
-
+    colors = ["blue", "green", "orange", "yellow", "SpringGreen", "purple", "DarkOrchid", "MistyRose"]
     colorCnt = 0
     augList = []
 
 def Use(fileName):
-    Defaults.includeFiles.append(fileName)
-
+    Defaults.useFiles.append(fileName)
 
 def PreInclude(fileName):
     Defaults.preFiles.append(fileName)
@@ -42,7 +36,6 @@ def PostInclude(fileName):
     Defaults.postFiles.append(fileName)
 
 class SolidPyObj(object):
-
     def __init__(self):
         self._transformStack = []
         self.root = False
@@ -56,51 +49,51 @@ class SolidPyObj(object):
             self.color(Defaults.colors[Defaults.colorCnt % len(Defaults.colors)])
             Defaults.colorCnt += 1
 
-#ToDo add __str__ to Solid object model
+    #ToDo add __str__ to Solid object model
 
     def __add__(self, solidObj1):
-            """a=x+y calls x.__add__(y)->a"""
-            if isinstance(self, Union):
-                self.add(solidObj1)
-                return self
+        """a=x+y calls x._add(y)->a"""
+        if isinstance(self, Union):
+            self.add(solidObj1)
+            return self
 
-            elif isinstance(solidObj1, Union):
-                solidObj1.add(self)
-                return solidObj1
-            else:
-                newUnion = Union(self, solidObj1)
-                return newUnion
+        elif isinstance(solidObj1, Union):
+            solidObj1.add(self)
+            return solidObj1
+        else:
+            newUnion = Union(self, solidObj1)
+            return newUnion
 
     def __sub__(self, solidObj1):
-            if isinstance(self, Difference):
-                self.add(solidObj1)
-                return self
-            else:
-                newDifference = Difference(self, solidObj1)
-                return newDifference
+        if isinstance(self, Difference):
+            self.add(solidObj1)
+            return self
+        else:
+            newDifference = Difference(self, solidObj1)
+            return newDifference
 
     def __mul__(self, solidObj1):
-            if isinstance(self, Intersection):
-                self.add(solidObj1)
-                return self
-            if isinstance(solidObj1, Intersection):
-                solidObj1.add(self)
-                return solidObj1
-            else:
-                newIntersection = Intersection(self, solidObj1)
-                return newIntersection
+        if isinstance(self, Intersection):
+            self.add(solidObj1)
+            return self
+        if isinstance(solidObj1, Intersection):
+            solidObj1.add(self)
+            return solidObj1
+        else:
+            newIntersection = Intersection(self, solidObj1)
+            return newIntersection
 
     def copy(self):
         X = copy.deepcopy(self)
-
+    
         if Defaults.autoColor == True:
             X.color(Defaults.colors[Defaults.colorCnt % len(Defaults.colors)])
             Defaults.colorCnt += 1
         return X
-
+    
     def setTabLvl(self, lvl):
         self.tabLvl = lvl
-
+    
     def rotate(self, x, y = None, z = None, v = None):
         """Puts a rotate transform on the transform stack"""
         rStr = ""
@@ -112,29 +105,22 @@ class SolidPyObj(object):
                 loc = [vvx, vvx, vvx]
             else:
                 loc = [str(getV(x)), str(getV(y)), str(getV(z))]
-
+    
         x, y, z = loc
-
+    
         if v:
             q, r, s = v
             rStr = "rotate(a = [%s,%s,%s], v = [%.2f,%.2f,%.2f])" % (x, y, z, 1.0 * q, 1.0 * r, 1.0 * s)
         else:
             rStr = "rotate([%s, %s, %s])" % (x,y,z)
         self._transformStack.append(rStr)
-
+    
     def release(self):
-
-#        if isinstance(self.parent, Difference):
-#            #No longer a candidate for augmentation
-#            Defaults.augList.remove(self)
-#            self.color("yellow", 1)
-
-
         if self.parent != None:
             self.parent.children.remove(self)
             self.parent = None
             self.tabLvl = 0
-
+    
     def scale(self, x, y = None, z = None):
         """Puts a scale transform on the transform stack"""
         if type(x) == list:
@@ -145,19 +131,19 @@ class SolidPyObj(object):
                 loc = [vvx, vvx, vvx]
             else:
                 loc = [str(getV(x)), str(getV(y)), str(getV(z))]
-
+    
             x, y, z = loc
-
+    
             rStr = "scale([%s,%s,%s])" % (x, y, z)
             self._transformStack.append(rStr)
-
+    
     def translate(self, x, y = None, z = None):
         """
         Puts a translate transform on the transform stack
         translate( [x,y,z]) or translate(x,y,z)
         translate (1) -> [1,1,1]
-    """
-
+        """
+    
         if type(x) == list:
             loc = [str(getV(i)) for i in x]
         else:
@@ -166,17 +152,19 @@ class SolidPyObj(object):
                 loc = [vvx, vvx, vvx]
             else:
                 loc = [str(getV(x)), str(getV(y)), str(getV(z))]
-
+    
         x, y, z = loc
-
+    
         rStr = "translate([%s,%s,%s])" % (x, y, z)
         self._transformStack.append(rStr)
-
+    
     def mirror(self, x, y = None, z = None):
-        """Puts a mirror transform on the transform stack
+        """
+        Puts a mirror transform on the transform stack
         mirror( [x,y,z]) or mirror(x,y,z)
         mirror (1) -> [1,1,1]
         """
+    
         if type(x) == list:
             loc = [str(getV(i)) for i in x]
         else:
@@ -185,16 +173,18 @@ class SolidPyObj(object):
                 loc = [vvx, vvx, vvx]
             else:
                 loc = [str(getV(x)), str(getV(y)), str(getV(z))]
-
+    
         x, y, z = loc
-
+    
         rStr = "mirror([%s,%s,%s])" % (x, y, z)
-
+    
         self._transformStack.append(rStr)
 
     def multmatrix(self, m):
-        """Puts a multmatrix transform on the transform stack
-        *** not tested ***"""
+        """
+        Puts a multmatrix transform on the transform stack
+        *** not tested ***
+        """
         rStr = "multmatrix(%s)" % str(m)
         self._transformStack.append(rStr)
 
@@ -242,7 +232,6 @@ class SolidPyObj(object):
 
         return OSCstr
 
-
 class Cube(SolidPyObj):
     """
     Cube( [x,y,z],center=True) or Cube( x,y,z,center)
@@ -270,44 +259,46 @@ class Cube(SolidPyObj):
 
 class Sphere(SolidPyObj):
     """
-    r=radius
-    fa = Angle in degrees
-    fs= Angle in mm
+    r = radius (mm)
+    minFragmentAngle = angle (degrees)
+    minFragmentSize = length (mm)
     """
-    def __init__(self, r, fa = None, fs = None, fn = None):
+    def __init__(self, r, minFragmentAngle = None, minFragmentSize = None, numFragments = None):
         SolidPyObj.__init__(self)
         self.r = getV(r)
-        self.fa = Defaults.fa
-        self.fa = getV(fa)
-        self.fs = getV(fs)
-        self.fn = getV(fn)
+        self.minFragmentAngle = Defaults.minFragmentAngle
+        self.minFragmentAngle = getV(minFragmentAngle)
+        self.minFragmentSize = getV(minFragmentSize)
+        self.numFragments = getV(numFragments)
 
     def renderOSC(self):
         protoStr = "sphere(r = %s" % str(self.r)
-        if self.fa:
-            protoStr += ", $fa = %s" % str(self.fa)
-        if self.fs:
-            protoStr += ", $fs = %s" % str(self.fs)
-        if self.fn:
-            protoStr += ", $fn = %s" % str(self.fn)
+        if self.minFragmentAngle:
+            protoStr += ", $fa = %s" % str(self.minFragmentAngle)
+        if self.minFragmentSize:
+            protoStr += ", $fs = %s" % str(self.minFragmentSize)
+        if self.numFragments:
+            protoStr += ", $fn = %s" % str(self.numFragments)
         protoStr += ");"
         return self.OSCString(protoStr)
 
 class Cylinder(SolidPyObj):
-    def __init__(self, h, r, r2 = None, fa = None, fs = None, fn = None, center = None):
+    def __init__(self, h, r, r2 = None, minFragmentAngle = None, minFragmentSize = None, numFragments = None, center = None):
         """
-        h= height, r=radius note if r2 == None->r2=r
-        fa = Angle in degrees
-        fs= Angle in mm
-        center: If True, object is centered at (0,0,0)
+        h = height (mm)
+        r = starting radius (mm)
+        r2 = ending radius (mm), note if r2 == None then r2=r
+        minFragmentAngle = angle (degrees)
+        minFragmentSize= length (mm)
+        center: if True, object is centered at (0,0,0)
         """
         SolidPyObj.__init__(self)
         self.r = getV(r)
         self.h = getV(h)
         self.r2 = getV(r2)
-        self.fa = getV(fa)
-        self.fs = getV(fs)
-        self.fn = getV(fn)
+        self.minFragmentAngle = getV(minFragmentAngle)
+        self.minFragmentSize = getV(minFragmentSize)
+        self.numFragments = getV(numFragments)
         self.center = center
 
     def renderOSC(self):
@@ -316,12 +307,12 @@ class Cylinder(SolidPyObj):
         else:
             protoStr = "cylinder(h=%s, r1=%s, r2=%s" % (str(self.h), str(self.r), str(self.r2))
 
-        if self.fa:
-            protoStr += ", $fa = %s" % str(self.fa)
-        if self.fs:
-            protoStr += ", $fs = %s" % str(self.fs)
-        if self.fn:
-            protoStr += ", $fn = %s" % str(self.fn)
+        if self.minFragmentAngle:
+            protoStr += ", $fa = %s" % str(self.minFragmentAngle)
+        if self.minFragmentSize:
+            protoStr += ", $fs = %s" % str(self.minFragmentSize)
+        if self.numFragments:
+            protoStr += ", $fn = %s" % str(self.numFragments)
         if self.center:
             protoStr += ", center = %s" % boolStr(self.center)
         protoStr += ");"
@@ -359,26 +350,24 @@ class Linear_extrude(SolidPyObj):
         protoStr += self.solidObj.renderOSC()
         return self.OSCString(protoStr)
 
-
 class Rotate_extrude(SolidPyObj):
-    def __init__ (self, solidObj, convexity = None, fn = None):
+    def __init__ (self, solidObj, convexity = None, numFragments = None):
         SolidPyObj.__init__(self)
         self.solidObj = solidObj
         self.convexity = getV(convexity)
-        self.fn = getV(fn)
+        self.numFragments = getV(numFragments)
 
 
     def renderOSC(self):
         protoStr = "rotate_extrude("
         if self.convexity:
             protoStr += " convexity=%s" % self.convexity
-        if self.fn:
-            protoStr += ", fn = %s" % self.fn
+        if self.numFragments:
+            protoStr += ", fn = %s" % self.numFragments
         protoStr += ") "
         protoStr += self.solidObj.renderOSC()
         return self.OSCString(protoStr)
 
-##projection(cut = true)
 class Projection(SolidPyObj):
     def __init__ (self, solidObj, cut):
 
@@ -391,28 +380,31 @@ class Projection(SolidPyObj):
         protoStr += self.SolidPyObj.renderOSC()
         return self.OSCString(protoStr)
 
-class Import(SolidPyObj):
-    def __init__(self, filename):
+class ImportSTL(SolidPyObj):
+    def __init__(self, filename, convexity = None):
         SolidPyObj.__init__(self)
         self.filename = filename
+        self.convexity = getV(convexity)
 
     def renderOSC(self):
-        protoStr = ""
-        protoStr += 'import("%s");' % self.filename
+        protoStr = 'import(file="%s"' % self.filename
+        if self.convexity:
+            protoStr += ',convexity=%s' % self.convexity
+        protoStr += ');'
         return self.OSCString(protoStr)
 
 
 class Circle(SolidPyObj):
-    def __init__(self, r, fn = None):
+    def __init__(self, r, numFragments = None):
         SolidPyObj.__init__(self)
-        self.fn = getV(fn)
+        self.numFragments = getV(numFragments)
         self.r = getV(r)
 
     def renderOSC(self):
         protoStr = "" + self.tabLvl * Defaults.tab
         protoStr += "circle(r = %s" % self.r
-        if self.fn:
-            protoStr += ", $fn=%s" % self.fn
+        if self.numFragments:
+            protoStr += ", $fn=%s" % self.numFragments
         protoStr += ");"
         return self.OSCString(protoStr)
 
@@ -458,54 +450,13 @@ class Polygon(SolidPyObj):
         return self.OSCString(protoStr)
 
 
-
-class Import_dxf(SolidPyObj):
-    def __init__(self, filename, layer = None, origin = None, scale = None):
-        SolidPyObj.__init__(self)
-        self.filename = filename
-        self.layer = layer
-        self.origin = origin
-        self.scale = scale
-
-    def renderOSC(self):
-        protoStr = ""
-        protoStr += 'import_dxf(file="%s"' % self.filename
-        if self.layer:
-            protoStr += ", layername = %s" % self.layer
-        if self.origin:
-            protoStr += ", origin = %s" % self.origin
-        if self.scale:
-            protoStr += ", scale = %s" % self.scale
-        protoStr += ");"
-        return self.OSCString(protoStr)
-
-##dxf_linear_extrude(file="finn.dxf", height=3, convexity=1, center=true);
-class DXF_linear_extrude(SolidPyObj):
-    def __init__(self, filename, height, convexity = None, center = None):
-        SolidPyObj.__init__(self)
-        self.filename = filename
-        self.height = height
-        self.convexity = convexity
-        self.center = center
-
-    def renderOSC(self):
-        protoStr = ""
-        protoStr += 'dxf_linear_extrude(file="%s"' % self.filename
-        if self.height:
-            protoStr += ", height=%s" % self.height
-        if self.convexity:
-            protoStr += ", convexity=%s" % self.convexity
-        if self.center:
-            protoStr += ", center=%s" % boolStr(self.center)
-        protoStr += ");"
-        return self.OSCString(protoStr)
-
-
 ## CGS Modeling ##
 
 class CGS(SolidPyObj):
-    """Generic class that other CGS classes inherit from. Will accept
-    lists or individual solid objects."""
+    """
+    Generic class that other CGS classes inherit from. 
+    Will accept lists or individual solid objects.
+    """
     def __init__(self, solidObj1, solidObj2):
         SolidPyObj.__init__(self)
         self.children = []
@@ -640,13 +591,15 @@ def getV(val):
     if type(val) == V: val = val.renderOSC()
     return val
 
-def writeSCADfile(fileName, *args):
-    """fileName = the SCAD file to save to. Include the '.scad' extension
-    args can be SolidPyObj or lists of SolidPyObj"""
+def write_scad_file(fileName, *args):
+    """
+    fileName = file generated containing SCAD code (make sure to include the '.scad' extension)
+    args = SolidPy2 object or list(s) of SolidPy2 objects
+    """
 
     theStr = ""
 
-    for f in Defaults.includeFiles:
+    for f in Defaults.useFiles:
         theStr += "use<%s>;\n\n" % f
 
     for f in Defaults.preFiles:
@@ -655,12 +608,12 @@ def writeSCADfile(fileName, *args):
 
     theStr += '\n'
 
-    if Defaults.fa:
-        theStr += '$fa=%s;\n' % Defaults.fa
-    if Defaults.fn:
-        theStr += '$fn=%s;\n' % Defaults.fn
-    if Defaults.fs:
-        theStr += '$fs=%s;\n' % Defaults.fs
+    if Defaults.minFragmentAngle:
+        theStr += '$fa=%s;\n' % Defaults.minFragmentAngle
+    if Defaults.numFragments:
+        theStr += '$fn=%s;\n' % Defaults.numFragments
+    if Defaults.minFragmentSize:
+        theStr += '$fs=%s;\n' % Defaults.minFragmentSize
 
     theStr += '\n'
 
@@ -694,9 +647,9 @@ def main():
 
     g = OscModule("ring", 5, 5, 10)
 
-    writeSCADfile('solidPy.scad', g)
+    write_scad_file('myring.scad', g)
 
-    print g.renderOSC()
+    print(g.renderOSC())
 
 
 if __name__ == '__main__':
